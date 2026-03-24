@@ -85,7 +85,7 @@
   </section>
 
   <!-- SCRIPTS -->
-  <script>
+  <!-- <script>
 
 
     
@@ -146,8 +146,44 @@
 
       videos.forEach(video => observer.observe(video));
     });
-  </script>
- <script src="JS/index.js"></script>
+  </script> -->
+ 
+ <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const videos = document.querySelectorAll("video.lazy-video");
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target;
+      const source = video.querySelector("source");
+
+      if (entry.isIntersecting) {
+
+        // Lazy load only once
+        if (source.dataset.src && !source.src) {
+          source.src = source.dataset.src;
+          video.load();
+        }
+
+        // Play WITHOUT delay → smoother scrolling
+        video.play().catch(() => {});
+
+      } else {
+        video.pause();
+      }
+    });
+  }, {
+    threshold: 0.2,           // slightly earlier trigger = smoother
+    rootMargin: "150px 0px"   // preload before entering viewport
+  });
+
+  videos.forEach(video => observer.observe(video));
+
+});
+</script>
+  
+  <script src="JS/index.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
