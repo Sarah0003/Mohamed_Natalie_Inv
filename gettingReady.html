@@ -128,65 +128,81 @@
     </div>
   </section>
   <!-- END SECTION 1 -->
-   <script>
-     document.addEventListener("DOMContentLoaded", function () {
+<script>
+document.addEventListener("DOMContentLoaded", function () {
 
-       const videos = document.querySelectorAll("video.lazy-video");
+  const videos = document.querySelectorAll("video.lazy-video");
 
-       // iOS autoplay unlock (lightweight)
-       let unlocked = false;
+  // iOS autoplay unlock (fixed)
+  let unlocked = false;
 
-       function unlockVideos() {
-         if (unlocked) return;
-         const firstVideo = videos[0];
-         if (firstVideo) {
-           firstVideo.muted = true;
-           firstVideo.play().then(() => firstVideo.pause()).catch(() => {});
-         }
-         unlocked = true;
-         document.removeEventListener("touchstart", unlockVideos);
-         document.removeEventListener("click", unlockVideos);
-       }
+  function unlockVideos() {
+    if (unlocked) return;
 
-       document.addEventListener("touchstart", unlockVideos, {
-         passive: true
-       });
-       document.addEventListener("click", unlockVideos);
+    const firstVideo = videos[0];
+    if (firstVideo) {
+      firstVideo.muted = true;
+      firstVideo.playsInline = true;
+      firstVideo.setAttribute("playsinline", "");
+      firstVideo.setAttribute("webkit-playsinline", "");
+      firstVideo.play().catch(() => {});
+    }
 
-       // Improved video loading + delayed play for iOS stability
-       const observer = new IntersectionObserver((entries) => {
-         entries.forEach(entry => {
-           const video = entry.target;
-           const source = video.querySelector("source");
+    unlocked = true;
 
-           if (entry.isIntersecting) {
-             // Lazy load source if needed
-             if (source.dataset.src && !source.src) {
-               source.src = source.dataset.src;
-               video.load();
-             }
+    document.removeEventListener("touchstart", unlockVideos);
+    document.removeEventListener("click", unlockVideos);
+  }
 
-             // Delay play slightly → helps iOS first-interaction freeze
-             setTimeout(() => {
-               const playPromise = video.play();
-               if (playPromise !== undefined) {
-                 playPromise.catch(() => {});
-               }
-             }, 140); // 140–200 ms usually sweet spot
+  document.addEventListener("touchstart", unlockVideos, { passive: true });
+  document.addEventListener("click", unlockVideos);
 
-           } else {
-             video.pause();
-             video.currentTime = 0; // optional: reset to start when out of view
-           }
-         });
-       }, {
-         threshold: 0.25, // lower = starts earlier, less jank
-         rootMargin: "100px 0px" // start loading a bit before visible
-       });
+  // 🔥 Force all videos to behave correctly on iOS
+  videos.forEach(video => {
+    video.muted = true;
+    video.loop = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+    video.controls = false;
+  });
 
-       videos.forEach(video => observer.observe(video));
-     });
-   </script>
+  // Intersection Observer (UNCHANGED core logic)
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target;
+      const source = video.querySelector("source");
+
+      if (entry.isIntersecting) {
+
+        // Lazy load source
+        if (source.dataset.src && !source.src) {
+          source.src = source.dataset.src;
+          video.load();
+        }
+
+        // Play with slight delay (keeps iOS stable)
+        setTimeout(() => {
+          const playPromise = video.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {});
+          }
+        }, 140);
+
+      } else {
+        video.pause();
+      }
+    });
+  }, {
+    threshold: 0.25,
+    rootMargin: "100px 0px"
+  });
+
+  videos.forEach(video => observer.observe(video));
+
+});
+</script>
   <script src="JS/index.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
