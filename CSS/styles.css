@@ -1670,3 +1670,25 @@ video.lazy-video {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
+
+video.lazy-video {
+  pointer-events: none !important;
+  touch-action: none!important;
+  user-select: none!important;
+  -webkit-user-select: none!important;
+}
+
+/* 🔥 iOS overlay removal */
+video::-webkit-media-controls {
+  display: none !important;
+}
+
+video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none !important;
+}
+
+video::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+}

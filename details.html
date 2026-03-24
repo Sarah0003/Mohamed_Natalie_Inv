@@ -21,16 +21,16 @@
         <div class="col-sm-12 col-xl-12 sec_1_video position-relative">
 
           <video class="lazy-video" autoplay loop muted playsinline webkit-playsinline>
-            <source src="Videos/Dets/details01.mp4" type="video/mp4">
+            <source data-src="Videos/Dets/details01.mp4" type="video/mp4">
           </video>
           <video class="lazy-video video2" autoplay loop muted playsinline webkit-playsinline>
-            <source src="Videos/Dets/details02.mp4" type="video/mp4">
+            <source data-src="Videos/Dets/details02.mp4" type="video/mp4">
           </video>
           <video class="lazy-video" autoplay loop muted playsinline webkit-playsinline>
             <source data-src="Videos/Dets/details03.mp4" type="video/mp4">
           </video>
           <video class="lazy-video" autoplay loop muted playsinline webkit-playsinline>
-            <source src="Videos/Dets/details04.mp4" type="video/mp4">
+            <source data-src="Videos/Dets/details04.mp4" type="video/mp4">
           </video>
           <video class="lazy-video" autoplay loop muted playsinline webkit-playsinline>
             <source data-src="Videos/Dets/details05.mp4" type="video/mp4">
@@ -85,7 +85,85 @@
   </section>
 
   <!-- SCRIPTS -->
-  <!-- <script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const videos = document.querySelectorAll("video.lazy-video");
+
+  // iOS autoplay unlock (fixed)
+  let unlocked = false;
+
+  function unlockVideos() {
+    if (unlocked) return;
+
+    const firstVideo = videos[0];
+    if (firstVideo) {
+      firstVideo.muted = true;
+      firstVideo.playsInline = true;
+      firstVideo.setAttribute("playsinline", "");
+      firstVideo.setAttribute("webkit-playsinline", "");
+      firstVideo.play().catch(() => {});
+    }
+
+    unlocked = true;
+
+    document.removeEventListener("touchstart", unlockVideos);
+    document.removeEventListener("click", unlockVideos);
+  }
+
+  document.addEventListener("touchstart", unlockVideos, { passive: true });
+  document.addEventListener("click", unlockVideos);
+
+  // 🔥 Force all videos to behave correctly on iOS
+  videos.forEach(video => {
+    video.muted = true;
+    video.loop = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+    video.controls = false;
+  });
+
+  // Intersection Observer (UNCHANGED core logic)
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target;
+      const source = video.querySelector("source");
+
+      if (entry.isIntersecting) {
+
+        // Lazy load source
+        if (source.dataset.src && !source.src) {
+          source.src = source.dataset.src;
+          video.load();
+        }
+
+        // Play with slight delay (keeps iOS stable)
+        setTimeout(() => {
+          const playPromise = video.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {});
+          }
+        }, 140);
+
+      } else {
+        video.pause();
+      }
+    });
+  }, {
+    threshold: 0.25,
+    rootMargin: "100px 0px"
+  });
+
+  videos.forEach(video => observer.observe(video));
+
+});
+</script>
+
+ <!-- <script>
 
 
     
@@ -146,42 +224,9 @@
 
       videos.forEach(video => observer.observe(video));
     });
-  </script> -->
+  </script>  -->
  
- <script>
-document.addEventListener("DOMContentLoaded", function () {
 
-  const videos = document.querySelectorAll("video.lazy-video");
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const video = entry.target;
-      const source = video.querySelector("source");
-
-      if (entry.isIntersecting) {
-
-        // Lazy load only once
-        if (source.dataset.src && !source.src) {
-          source.src = source.dataset.src;
-          video.load();
-        }
-
-        // Play WITHOUT delay → smoother scrolling
-        video.play().catch(() => {});
-
-      } else {
-        video.pause();
-      }
-    });
-  }, {
-    threshold: 0.2,           // slightly earlier trigger = smoother
-    rootMargin: "150px 0px"   // preload before entering viewport
-  });
-
-  videos.forEach(video => observer.observe(video));
-
-});
-</script>
   
   <script src="JS/index.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
